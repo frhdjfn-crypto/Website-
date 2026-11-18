@@ -37,7 +37,7 @@ export async function downloadFileWithProgress(
     }
 
     const reader = response.body.getReader()
-    const chunks: Uint8Array[] = []
+    const chunks: BlobPart[] = []
     let loaded = 0
 
     while (true) {
@@ -46,7 +46,9 @@ export async function downloadFileWithProgress(
       if (done) break
 
       if (value) {
-        chunks.push(value)
+        const chunk = new Uint8Array(value.byteLength)
+        chunk.set(value)
+        chunks.push(chunk.buffer)
         loaded += value.length
 
         if (options.onProgress && total > 0) {
