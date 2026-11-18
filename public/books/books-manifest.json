@@ -1,0 +1,61 @@
+{
+  "id": 30,
+  "title": "كتاب التوحيد",
+  "author": "محمد بن عبد الوهاب",
+  "category": "دين",
+  "files": [
+    {
+      "type": "pdf", 
+      "path": "/books/pdf/كتاب_التوحيد.pdf",
+      "size": "2.87"
+    }
+  ]
+}
+{
+  "version": "1.0.0",
+  "lastUpdated": "2024-01-25T10:00:00Z",
+  "books": [
+    {
+      "id": 1,
+      "title": "الخيميائي",
+      "files": [
+        {
+          "type": "pdf",
+          "path": "/books/pdf/الخيميائي.pdf",
+          "size": "2.1 MB"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "العادات السبع",
+      "files": [
+        {
+          "type": "pdf",
+          "path": "/books/pdf/قوة العادات__.pdf",
+          "size": "3.5 MB"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "الإنسان العاقل",
+      "files": [
+        {
+          "type": "pdf",
+          "path": "/books/pdf/الإنسان_العاقل.pdf",
+          "size": "4.2 MB"
+        }
+      ]
+    }
+  ],
+  "statistics": {
+    "totalBooks": 28,
+    "totalSize": "156.8 MB",
+    "formats": {
+      "pdf": 28,
+      "epub": 0,
+      "mobi": 0
+    }
+  }
+}
