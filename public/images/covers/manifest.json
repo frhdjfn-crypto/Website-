@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2024-03-01T10:00:00Z",
+  "covers": [
+    {
+      "bookId": 1,
+      "title": "الخيميائي",
+      "filename": "الخيميائي.jpg",
+      "path": "/images/covers/الخيميائي.jpg",
+      "width": 400,
+      "height": 600,
+      "size": "85KB",
+      "format": "JPEG"
+    },
+    {
+      "bookId": 30,
+      "title": "قوة العادات",
+      "filename": "قوة_العادات.jpg",
+      "path": "/images/covers/قوة_العادات.jpg",
+      "width": 400,
+      "height": 600,
+      "size": "92KB",
+      "format": "JPEG"
+    },
+    {
+      "bookId": 31,
+      "title": "كتاب التوحيد",
+      "filename": "كتاب_التوحيد.jpg",
+      "path": "/images/covers/كتاب_التوحيد.jpg",
+      "width": 400,
+      "height": 600,
+      "size": "78KB",
+      "format": "JPEG"
+    }
+  ],
+  "statistics": {
+    "totalCovers": 3,
+    "totalSize": "255KB",
+    "averageSize": "85KB",
+    "formats": {
+      "JPEG": 3,
+      "PNG": 0,
+      "WebP": 0
+    }
+  }
+}
