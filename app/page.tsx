@@ -14,8 +14,10 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8 space-y-12">
         <UserActions />
         <FeaturedCategories />
-        <MostDownloadedBooks />
-        <NewestBooks />
+        <div className="flex w-full flex-col gap-6">
+          <NewestBooks />
+          <MostDownloadedBooks />
+        </div>
         <BookList />
         <MostRatedBooks />
       </div>

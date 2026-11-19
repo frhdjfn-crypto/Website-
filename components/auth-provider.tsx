@@ -1,6 +1,8 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/client"
 
 type User = {
   name: string
@@ -11,7 +13,7 @@ type AuthContextType = {
   user: User
   login: (email: string, password: string) => Promise<void>
   signup: (name: string, email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   library: string[]
   addToLibrary: (bookTitle: string) => void
   removeFromLibrary: (bookTitle: string) => void
@@ -20,51 +22,49 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+function toUser(supabaseUser: SupabaseUser | null): User {
+  if (!supabaseUser?.email) return null
+  const name = (supabaseUser.user_metadata?.name as string | undefined) ?? supabaseUser.email
+  return { name, email: supabaseUser.email }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const supabase = useMemo(() => createClient(), [])
   const [user, setUser] = useState<User>(null)
   const [library, setLibrary] = useState<string[]>([])
 
-  // Load user data from localStorage on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem("user")
-    const savedLibrary = localStorage.getItem("library")
+    supabase.auth.getUser().then(({ data }) => setUser(toUser(data.user)))
 
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
-    }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(toUser(session?.user ?? null))
+    })
 
-    if (savedLibrary) {
-      setLibrary(JSON.parse(savedLibrary))
-    }
-  }, [])
-
-  // Save user data to localStorage when it changes
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user))
-    } else {
-      localStorage.removeItem("user")
-    }
-  }, [user])
-
-  // Save library to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem("library", JSON.stringify(library))
-  }, [library])
+    return () => subscription.unsubscribe()
+  }, [supabase])
 
   const login = async (email: string, password: string) => {
-    // Mock login - in a real app, this would call an API
-    setUser({ name: "محمد أحمد", email })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
   }
 
   const signup = async (name: string, email: string, password: string) => {
-    // Mock signup - in a real app, this would call an API
-    // Just returning for now, user would need to login after signup
-    return
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name },
+        emailRedirectTo:
+          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`,
+      },
+    })
+    if (error) throw error
   }
 
-  const logout = () => {
-    setUser(null)
+  const logout = async () => {
+    await supabase.auth.signOut()
     setLibrary([])
   }
 
