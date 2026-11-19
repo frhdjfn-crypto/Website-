@@ -17,11 +17,12 @@ function HomeBookCard({ book }: { book: Book }) {
   const imageUrl = image?.url || book.imageUrl
 
   return (
-    <article className="min-w-0">
-      <Link href={`/book/${book.id}`} className="group block overflow-hidden rounded-lg">
-        <BookCover src={imageUrl} alt={`غلاف كتاب ${book.title}`} className="aspect-[3/4] rounded-lg" />
+    <article className="flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md">
+      <Link href={`/book/${book.id}`} className="group block overflow-hidden rounded-xl">
+        <BookCover src={imageUrl} alt={`غلاف كتاب ${book.title}`} className="aspect-[3/4] rounded-xl" />
       </Link>
-      <div className="flex flex-col items-center gap-2 px-1 pt-3 text-center">
+      <div className="my-3 h-px w-full bg-border" />
+      <div className="flex flex-1 flex-col items-center gap-2 text-center">
         <Link href={`/book/${book.id}`} className="w-full min-w-0">
           <h3 className="line-clamp-2 text-base font-bold leading-tight">{book.title}</h3>
         </Link>
@@ -46,7 +47,8 @@ export function BookList() {
 
   return (
     <div className="mb-10 w-full min-w-0">
-      <div className="grid grid-cols-2 gap-4 sm:gap-6">
+      <div className="my-10 border-t border-border" />
+      <div className="grid grid-cols-2 gap-4 sm:gap-5">
         {books.map((book) => (
           <HomeBookCard key={book.id} book={book} />
         ))}
