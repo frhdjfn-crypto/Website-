@@ -14,8 +14,10 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8 space-y-12">
         <UserActions />
         <FeaturedCategories />
-        <MostDownloadedBooks />
-        <NewestBooks />
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:items-start">
+          <MostDownloadedBooks />
+          <NewestBooks />
+        </div>
         <BookList />
         <MostRatedBooks />
       </div>
