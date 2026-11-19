@@ -1,10 +1,8 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import {
   Clock,
-  ChevronLeft,
-  ChevronRight,
   Star,
   Eye,
   Calendar,
@@ -27,10 +25,7 @@ export function NewestBooks() {
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({})
-  const [scrollPosition, setScrollPosition] = useState(0)
-  const [maxScroll, setMaxScroll] = useState(0)
   const [fileStats, setFileStats] = useState<any>(null)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadNewestBooks()
@@ -86,37 +81,6 @@ export function NewestBooks() {
     return `منذ ${Math.ceil(diffDays / 30)} شهر`
   }
 
-  useEffect(() => {
-    const container = scrollContainerRef.current
-    if (container) {
-      const handleScroll = () => {
-        setScrollPosition(container.scrollLeft)
-        setMaxScroll(container.scrollWidth - container.clientWidth)
-      }
-
-      setMaxScroll(container.scrollWidth - container.clientWidth)
-      container.addEventListener("scroll", handleScroll)
-      window.addEventListener("resize", handleScroll)
-
-      return () => {
-        container.removeEventListener("scroll", handleScroll)
-        window.removeEventListener("resize", handleScroll)
-      }
-    }
-  }, [books])
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -300, behavior: "smooth" })
-    }
-  }
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" })
-    }
-  }
-
   if (loading) {
     return (
       <Card className="mb-8 dark:bg-gray-800 overflow-hidden">
@@ -167,26 +131,6 @@ export function NewestBooks() {
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="bg-white/20 hover:bg-white/30 border-white/40 text-white rounded-full h-8 w-8"
-              onClick={scrollLeft}
-              disabled={scrollPosition <= 0}
-            >
-              <ChevronRight className="h-4 w-4" />
-              <span className="sr-only">السابق</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="bg-white/20 hover:bg-white/30 border-white/40 text-white rounded-full h-8 w-8"
-              onClick={scrollRight}
-              disabled={scrollPosition >= maxScroll}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="sr-only">التالي</span>
-            </Button>
           </div>
         </div>
       </CardHeader>
@@ -202,26 +146,11 @@ export function NewestBooks() {
             </Button>
           </div>
         ) : (
-          <div className="relative">
-            {/* مؤشرات التمرير الجانبي */}
-            {scrollPosition > 0 && (
-              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background/80 to-transparent z-10 pointer-events-none" />
-            )}
-
-            {scrollPosition < maxScroll && (
-              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background/80 to-transparent z-10 pointer-events-none" />
-            )}
-
-            {/* شريط التنقل الجانبي */}
-            <div
-              ref={scrollContainerRef}
-              className="flex overflow-x-auto scrollbar-hide cursor-grab py-4 px-4"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
+          <div className="grid grid-cols-2 gap-3 p-3 sm:gap-4 sm:p-4">
               {books.map((book, index) => (
                 <div
                   key={book.id}
-                  className="flex-shrink-0 w-[340px] px-2 snap-start"
+                  className="min-w-0"
                   onClick={() => router.push(`/book/${book.id}`)}
                 >
                   <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border hover:border-blue-500/50 cursor-pointer group">
@@ -297,7 +226,6 @@ export function NewestBooks() {
                   </Card>
                 </div>
               ))}
-            </div>
           </div>
         )}
 
