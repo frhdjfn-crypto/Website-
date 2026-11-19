@@ -1,27 +1,21 @@
 "use client"
 
-import { useState } from "react"
 import { Download, Star, Eye } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getAllBooks } from "@/lib/books-data"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
+import Link from "next/link"
+import { BookCover } from "@/components/book-cover"
 
 export function MostDownloadedBooks() {
   const router = useRouter()
-  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({})
-
   // ترتيب الكتب حسب عدد التحميلات
   const mostDownloadedBooks = getAllBooks()
     .filter((book) => book.downloadCount && book.downloadCount > 0)
     .sort((a, b) => (b.downloadCount || 0) - (a.downloadCount || 0))
     .slice(0, 10) // أعلى 10 كتب
-
-  const handleImageError = (bookId: number) => {
-    setImageErrors((prev) => ({ ...prev, [bookId]: true }))
-  }
 
   const formatDownloadCount = (count: number) => {
     if (count >= 1000) {
@@ -31,7 +25,7 @@ export function MostDownloadedBooks() {
   }
 
   return (
-    <Card className="mb-8 overflow-hidden rounded-3xl border-0 bg-[#f2efe7] shadow-sm">
+    <Card className="w-full overflow-hidden rounded-3xl border-0 bg-[#f2efe7] shadow-sm">
       <CardHeader className="bg-transparent px-4 pt-8 text-center sm:px-8">
         <div className="flex items-center justify-center">
           <div>
@@ -45,48 +39,39 @@ export function MostDownloadedBooks() {
       </CardHeader>
       <CardContent className="p-0">
         {mostDownloadedBooks.length ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 px-4 pb-8 pt-5 lg:grid-cols-3 lg:gap-x-8 sm:px-8">
+          <div
+            dir="rtl"
+            className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 pt-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-pr-4 sm:px-8 sm:scroll-pr-8"
+          >
             {mostDownloadedBooks.map((book, index) => (
-              <div
-                key={book.id}
-                className="min-w-0"
-                onClick={() => router.push(`/book/${book.id}`)}
-              >
-                <Card className="group h-full cursor-pointer overflow-hidden rounded-2xl border-0 bg-transparent shadow-none transition-transform duration-300 hover:-translate-y-1">
-                  <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 shadow-md">
-                    {book.imageUrl && !imageErrors[book.id] ? (
-                      <Image
-                        src={book.imageUrl || "/placeholder.svg"}
+              <article key={book.id} className="w-[calc(50%_-_8px)] shrink-0 snap-start">
+                <Card className="group h-full overflow-hidden rounded-2xl border-0 bg-transparent shadow-none transition-transform duration-300 hover:-translate-y-1">
+                  <div className="relative">
+                    <Link href={`/book/${book.id}`} className="block">
+                      <BookCover
+                        src={book.imageUrl}
                         alt={`غلاف كتاب ${book.title}`}
-                        fill
-                        className="object-cover hover:scale-110 transition-transform"
-                        onError={() => handleImageError(book.id)}
-                        sizes="320px"
+                        className="aspect-[2/3] rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 shadow-md"
                       />
-                    ) : (
-                      <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary to-primary-dark text-white">
-                        <Download className="h-12 w-12" />
-                      </div>
-                    )}
-                    {/* شارة الترتيب */}
-                    <div className="absolute top-2 right-2">
+                    </Link>
+                    <div className="absolute right-2 top-2">
                       <Badge
                         variant="default"
-                        className="text-sm bg-red-500 text-white font-bold w-8 h-8 flex items-center justify-center p-0"
+                        className="flex h-8 w-8 items-center justify-center bg-red-500 p-0 text-sm font-bold text-white"
                       >
                         {index + 1}
                       </Badge>
                     </div>
                   </div>
 
-                  {/* معلومات الكتاب */}
                   <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2 py-3 text-center sm:px-3">
-                    <h4 className="line-clamp-2 text-base font-bold leading-snug transition-colors hover:text-primary sm:text-lg">
-                      {book.title}
-                    </h4>
-                    <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
+                    <Link href={`/book/${book.id}`} className="w-full min-w-0">
+                      <h4 className="line-clamp-2 text-base font-bold leading-snug transition-colors hover:text-primary sm:text-lg">
+                        {book.title}
+                      </h4>
+                    </Link>
+                    <p className="line-clamp-1 text-xs text-muted-foreground">{book.author}</p>
 
-                    {/* إحصائيات */}
                     <div className="flex items-center gap-3 text-xs">
                       <div className="flex items-center gap-1 text-green-600">
                         <Download className="h-3 w-3" />
@@ -98,22 +83,22 @@ export function MostDownloadedBooks() {
                       </div>
                     </div>
 
-                    <Badge variant="outline" className="text-xs w-fit">
+                    <Badge variant="outline" className="w-fit text-xs">
                       {book.category}
                     </Badge>
 
-                    {/* زر العرض */}
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="mt-2 w-full opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                      onClick={() => router.push(`/book/${book.id}`)}
                     >
-                      <Eye className="h-4 w-4 mr-1" />
+                      <Eye className="mr-1 h-4 w-4" />
                       <span className="text-xs">عرض التفاصيل</span>
                     </Button>
                   </div>
                 </Card>
-              </div>
+              </article>
             ))}
           </div>
         ) : (

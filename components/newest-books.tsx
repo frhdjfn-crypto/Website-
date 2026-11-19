@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { getAllBooks } from "@/lib/books-data"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
-import Image from "next/image"
+import Link from "next/link"
+import { BookCover } from "@/components/book-cover"
 import type { Book } from "@/lib/types"
 
 export function NewestBooks() {
@@ -16,7 +17,6 @@ export function NewestBooks() {
   const { toast } = useToast()
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
-  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({})
 
   useEffect(() => {
     loadNewestBooks()
@@ -51,13 +51,9 @@ export function NewestBooks() {
     }
   }
 
-  const handleImageError = (bookId: number) => {
-    setImageErrors((prev) => ({ ...prev, [bookId]: true }))
-  }
-
   if (loading) {
     return (
-      <Card className="mb-8 dark:bg-gray-800 overflow-hidden">
+      <Card className="w-full overflow-hidden dark:bg-gray-800">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
           <div className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
@@ -76,7 +72,7 @@ export function NewestBooks() {
   }
 
   return (
-    <Card className="mb-8 overflow-hidden rounded-3xl border-0 bg-[#f2efe7] shadow-sm">
+    <Card className="w-full overflow-hidden rounded-3xl border-0 bg-[#f2efe7] shadow-sm">
       <CardHeader className="bg-transparent px-4 pt-8 text-center sm:px-8">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
@@ -113,64 +109,56 @@ export function NewestBooks() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 px-4 pb-8 pt-5 lg:grid-cols-3 lg:gap-x-8 sm:px-8">
-              {books.map((book, index) => (
-                <div
-                  key={book.id}
-                  className="min-w-0"
-                  onClick={() => router.push(`/book/${book.id}`)}
-                >
-                  <Card className="h-full cursor-pointer overflow-hidden rounded-2xl border-0 bg-transparent shadow-none transition-transform duration-300 hover:-translate-y-1 group">
-                    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 shadow-md">
-                      {book.imageUrl && !imageErrors[book.id] ? (
-                        <Image
-                          src={book.imageUrl || "/placeholder.svg"}
-                          alt={`غلاف كتاب ${book.title}`}
-                          fill
-                          className="object-cover hover:scale-110 transition-transform"
-                          onError={() => handleImageError(book.id)}
-                          sizes="320px"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                          <BookOpen className="h-12 w-12" />
-                        </div>
-                      )}
-                      {/* شارة "جديد" أو "متاح" */}
-                      {index < 3 && (
-                        <div className="absolute right-2 top-2">
-                          <Badge variant="default" className="bg-primary text-primary-foreground text-xs font-bold">
-                            جديد
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
+          <div
+            dir="rtl"
+            className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 pt-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-pr-4 sm:px-8 sm:scroll-pr-8"
+          >
+            {books.map((book, index) => (
+              <article key={book.id} className="w-[calc(50%_-_8px)] shrink-0 snap-start">
+                <Card className="group h-full overflow-hidden rounded-2xl border-0 bg-transparent shadow-none transition-transform duration-300 hover:-translate-y-1">
+                  <div className="relative">
+                    <Link href={`/book/${book.id}`} className="block">
+                      <BookCover
+                        src={book.imageUrl}
+                        alt={`غلاف كتاب ${book.title}`}
+                        className="aspect-[2/3] rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 shadow-md"
+                      />
+                    </Link>
+                    {index < 3 && (
+                      <div className="absolute right-2 top-2">
+                        <Badge variant="default" className="bg-primary text-primary-foreground text-xs font-bold">
+                          جديد
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
 
-                    {/* معلومات الكتاب */}
-                    <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2 py-3 text-center sm:px-3">
+                  <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2 py-3 text-center sm:px-3">
+                    <Link href={`/book/${book.id}`} className="w-full min-w-0">
                       <h4 className="line-clamp-2 text-base font-bold leading-snug transition-colors hover:text-primary sm:text-lg">
                         {book.title}
                       </h4>
-                      <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
+                    </Link>
+                    <p className="line-clamp-1 text-xs text-muted-foreground">{book.author}</p>
 
-                      <div className="flex items-center gap-1.5 text-amber-500">
-                        <Star className="h-4 w-4 fill-current" />
-                        <span className="font-medium">{book.rating.toFixed(1)}</span>
-                      </div>
-
-                      {/* زر العرض */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        <span className="text-xs">عرض وتحميل</span>
-                      </Button>
+                    <div className="flex items-center gap-1.5 text-amber-500">
+                      <Star className="h-4 w-4 fill-current" />
+                      <span className="font-medium">{book.rating.toFixed(1)}</span>
                     </div>
-                  </Card>
-                </div>
-              ))}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 w-full opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                      onClick={() => router.push(`/book/${book.id}`)}
+                    >
+                      <Eye className="mr-1 h-4 w-4" />
+                      <span className="text-xs">عرض وتحميل</span>
+                    </Button>
+                  </div>
+                </Card>
+              </article>
+            ))}
           </div>
         )}
 
