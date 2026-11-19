@@ -1,19 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import {
-  Clock,
-  Star,
-  Eye,
-  Calendar,
-  CheckCircle,
-  AlertCircle,
-  RefreshCw,
-} from "lucide-react"
+import { BookOpen, Star, Eye, AlertCircle, RefreshCw } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { getNewestAvailableBooks, getFileStats } from "@/lib/books-data"
+import { getAllBooks } from "@/lib/books-data"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import Image from "next/image"
@@ -25,7 +17,6 @@ export function NewestBooks() {
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({})
-  const [fileStats, setFileStats] = useState<any>(null)
 
   useEffect(() => {
     loadNewestBooks()
@@ -35,18 +26,16 @@ export function NewestBooks() {
     try {
       setLoading(true)
 
-      // الحصول على أحدث الكتب المتاحة
-      const newestBooks = await getNewestAvailableBooks(10)
+      const newestBooks = getAllBooks()
+        .slice()
+        .sort((a, b) => new Date(b.addedDate || 0).getTime() - new Date(a.addedDate || 0).getTime())
+        .slice(0, 10)
       setBooks(newestBooks)
-
-      // الحصول على إحصائيات الملفات
-      const stats = getFileStats()
-      setFileStats(stats)
 
       if (newestBooks.length === 0) {
         toast({
           title: "لا توجد كتب جديدة",
-          description: "لم يتم العثور على كتب جديدة متاحة للتحميل",
+          description: "لم يتم العثور على كتب مضافة حديثًا إلى المكتبة",
           variant: "destructive",
         })
       }
@@ -66,27 +55,13 @@ export function NewestBooks() {
     setImageErrors((prev) => ({ ...prev, [bookId]: true }))
   }
 
-  const formatDate = (addedDate?: string) => {
-    if (!addedDate) return "غير محدد"
-
-    const added = new Date(addedDate)
-    const now = new Date()
-    const diffTime = Math.abs(now.getTime() - added.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays === 0) return "اليوم"
-    if (diffDays === 1) return "أمس"
-    if (diffDays < 7) return `منذ ${diffDays} أيام`
-    if (diffDays < 30) return `منذ ${Math.ceil(diffDays / 7)} أسابيع`
-    return `منذ ${Math.ceil(diffDays / 30)} شهر`
-  }
-
   if (loading) {
     return (
       <Card className="mb-8 dark:bg-gray-800 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 animate-spin" />
+              <BookOpen className="h-5 w-5" />
+
             <h3 className="text-xl font-bold">جاري تحميل أحدث الكتب...</h3>
           </div>
         </CardHeader>
@@ -101,24 +76,16 @@ export function NewestBooks() {
   }
 
   return (
-    <Card className="mb-8 dark:bg-gray-800 overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="flex items-center gap-2 text-xl font-bold">
-              <Clock className="h-5 w-5" />
-              أحدث الكتب المتاحة
-              {fileStats && (
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/40">
-                  {fileStats.available} متاح
-                </Badge>
-              )}
+    <Card className="mb-8 overflow-hidden rounded-3xl border-0 bg-[#f2efe7] shadow-sm">
+      <CardHeader className="bg-transparent px-4 pt-8 text-center sm:px-8">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <h3 className="flex items-center justify-center gap-3 text-2xl font-bold text-[#205c3a] sm:text-3xl">
+              <BookOpen className="h-6 w-6" />
+              أحدث الكتب
             </h3>
-            <p className="text-white/90 text-sm">
-              الكتب الجديدة المتاحة للتحميل من مكتبتنا
-              {fileStats && fileStats.recentlyAdded > 0 && (
-                <span className="mr-2">• {fileStats.recentlyAdded} جديد هذا الأسبوع</span>
-              )}
+            <p className="mt-2 text-sm text-muted-foreground sm:text-lg">
+              اكتشف أحدث الإضافات إلى مكتبتنا — اضغط على الغلاف لعرض التفاصيل
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -146,16 +113,15 @@ export function NewestBooks() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 p-3 sm:gap-4 sm:p-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 px-4 pb-8 pt-5 lg:grid-cols-3 lg:gap-x-8 sm:px-8">
               {books.map((book, index) => (
                 <div
                   key={book.id}
                   className="min-w-0"
                   onClick={() => router.push(`/book/${book.id}`)}
                 >
-                  <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border hover:border-blue-500/50 cursor-pointer group">
-                    {/* صورة الكتاب - كبيرة */}
-                    <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-lg overflow-hidden">
+                  <Card className="h-full cursor-pointer overflow-hidden rounded-2xl border-0 bg-transparent shadow-none transition-transform duration-300 hover:-translate-y-1 group">
+                    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 shadow-md">
                       {book.imageUrl && !imageErrors[book.id] ? (
                         <Image
                           src={book.imageUrl || "/placeholder.svg"}
@@ -167,50 +133,29 @@ export function NewestBooks() {
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                          <Clock className="h-12 w-12" />
+                          <BookOpen className="h-12 w-12" />
                         </div>
                       )}
                       {/* شارة "جديد" أو "متاح" */}
-                      <div className="absolute top-2 right-2">
-                        {index < 3 ? (
-                          <Badge
-                            variant="default"
-                            className="text-xs bg-green-500 text-white font-bold"
-                          >
+                      {index < 3 && (
+                        <div className="absolute right-2 top-2">
+                          <Badge variant="default" className="bg-primary text-primary-foreground text-xs font-bold">
                             جديد
                           </Badge>
-                        ) : (
-                          <CheckCircle className="h-6 w-6 text-green-500 bg-white rounded-full" />
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* معلومات الكتاب */}
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <h4 className="font-semibold text-sm line-clamp-2 hover:text-blue-600 transition-colors">
+                    <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2 py-3 text-center sm:px-3">
+                      <h4 className="line-clamp-2 text-base font-bold leading-snug transition-colors hover:text-primary sm:text-lg">
                         {book.title}
                       </h4>
                       <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
 
-                      {/* إحصائيات */}
-                      <div className="flex items-center gap-3 text-xs">
-                        <div className="flex items-center gap-1 text-blue-600">
-                          <Calendar className="h-3 w-3" />
-                          <span className="font-medium">{formatDate(book.addedDate)}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-yellow-600">
-                          <Star className="h-3 w-3 fill-current" />
-                          <span>{book.rating}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline" className="text-xs">
-                          {book.category}
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                          {book.fileSize}
-                        </Badge>
+                      <div className="flex items-center gap-1.5 text-amber-500">
+                        <Star className="h-4 w-4 fill-current" />
+                        <span className="font-medium">{book.rating.toFixed(1)}</span>
                       </div>
 
                       {/* زر العرض */}
@@ -229,21 +174,7 @@ export function NewestBooks() {
           </div>
         )}
 
-        {/* مؤشر التحكم */}
-        <div className="flex items-center justify-between p-4 bg-muted/30 border-t">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span>ملفات متاحة للتحميل</span>
-            </div>
-            {fileStats && (
-              <div className="flex items-center gap-4">
-                <span>المجموع: {fileStats.total}</span>
-                <span>متاح: {fileStats.available}</span>
-                {fileStats.unavailable > 0 && <span className="text-red-500">غير متاح: {fileStats.unavailable}</span>}
-              </div>
-            )}
-          </div>
+        <div className="flex justify-center border-t border-black/5 p-4">
           <Button variant="outline" size="sm" onClick={() => router.push("/library")}>
             عرض جميع الكتب
           </Button>

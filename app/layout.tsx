@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Noto_Sans_Arabic } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -8,10 +8,11 @@ import { AuthProvider } from "@/components/auth-provider"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
-const inter = Inter({
-  subsets: ["latin"],
+const arabicFont = Noto_Sans_Arabic({
+  subsets: ["arabic"],
   display: "swap",
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-arabic",
 })
 
 export const metadata: Metadata = {
@@ -27,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <body className={`${inter.className} ${inter.variable}`}>
+      <body className={`${arabicFont.className} ${arabicFont.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="zeitouna-theme">
           <AuthProvider>
             <div className="min-h-screen bg-background flex flex-col">

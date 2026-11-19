@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import { Download, ChevronLeft, ChevronRight, Star, Eye } from "lucide-react"
+import { useState } from "react"
+import { Download, Star, Eye } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,9 +12,6 @@ import Image from "next/image"
 export function MostDownloadedBooks() {
   const router = useRouter()
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({})
-  const [scrollPosition, setScrollPosition] = useState(0)
-  const [maxScroll, setMaxScroll] = useState(0)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // ترتيب الكتب حسب عدد التحميلات
   const mostDownloadedBooks = getAllBooks()
@@ -33,100 +30,30 @@ export function MostDownloadedBooks() {
     return count.toLocaleString()
   }
 
-  useEffect(() => {
-    const container = scrollContainerRef.current
-    if (container) {
-      const handleScroll = () => {
-        setScrollPosition(container.scrollLeft)
-        setMaxScroll(container.scrollWidth - container.clientWidth)
-      }
-
-      // تحديث قيمة maxScroll عند تحميل المكون
-      setMaxScroll(container.scrollWidth - container.clientWidth)
-
-      container.addEventListener("scroll", handleScroll)
-      window.addEventListener("resize", handleScroll)
-
-      return () => {
-        container.removeEventListener("scroll", handleScroll)
-        window.removeEventListener("resize", handleScroll)
-      }
-    }
-  }, [])
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -300, behavior: "smooth" })
-    }
-  }
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" })
-    }
-  }
-
   return (
-    <Card className="mb-8 dark:bg-gray-800 overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-primary to-primary-dark text-white">
-        <div className="flex items-center justify-between">
+    <Card className="mb-8 overflow-hidden rounded-3xl border-0 bg-[#f2efe7] shadow-sm">
+      <CardHeader className="bg-transparent px-4 pt-8 text-center sm:px-8">
+        <div className="flex items-center justify-center">
           <div>
-            <h3 className="flex items-center gap-2 text-xl font-bold">
-              <Download className="h-5 w-5" />
+            <h3 className="flex items-center justify-center gap-3 text-2xl font-bold text-[#205c3a] sm:text-3xl">
+              <Download className="h-6 w-6" />
               الكتب الأكثر تحميلاً
             </h3>
-            <p className="text-white/90 text-sm">أشهر الكتب التي يحملها القراء</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="bg-white/20 hover:bg-white/30 border-white/40 text-white rounded-full h-8 w-8"
-              onClick={scrollLeft}
-              disabled={scrollPosition <= 0}
-            >
-              <ChevronRight className="h-4 w-4" />
-              <span className="sr-only">السابق</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="bg-white/20 hover:bg-white/30 border-white/40 text-white rounded-full h-8 w-8"
-              onClick={scrollRight}
-              disabled={scrollPosition >= maxScroll}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="sr-only">التالي</span>
-            </Button>
+            <p className="mt-2 text-sm text-muted-foreground sm:text-lg">أشهر الكتب التي يختارها القراء</p>
           </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="relative">
-          {/* مؤشرات التمرير الجانبي */}
-          {scrollPosition > 0 && (
-            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background/80 to-transparent z-10 pointer-events-none" />
-          )}
-
-          {scrollPosition < maxScroll && (
-            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background/80 to-transparent z-10 pointer-events-none" />
-          )}
-
-          {/* شريط التنقل الجانبي */}
-          <div
-            className="flex overflow-x-auto scrollbar-hide cursor-grab py-4 px-4"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            ref={scrollContainerRef}
-          >
+        {mostDownloadedBooks.length ? (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 px-4 pb-8 pt-5 lg:grid-cols-3 lg:gap-x-8 sm:px-8">
             {mostDownloadedBooks.map((book, index) => (
               <div
                 key={book.id}
-                className="flex-shrink-0 w-[340px] px-2 snap-start"
+                className="min-w-0"
                 onClick={() => router.push(`/book/${book.id}`)}
               >
-                <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border hover:border-primary/50 cursor-pointer">
-                  {/* صورة الكتاب - كبيرة */}
-                  <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-primary/10 to-primary-dark/10 rounded-lg overflow-hidden group">
+                <Card className="group h-full cursor-pointer overflow-hidden rounded-2xl border-0 bg-transparent shadow-none transition-transform duration-300 hover:-translate-y-1">
+                  <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 shadow-md">
                     {book.imageUrl && !imageErrors[book.id] ? (
                       <Image
                         src={book.imageUrl || "/placeholder.svg"}
@@ -153,8 +80,8 @@ export function MostDownloadedBooks() {
                   </div>
 
                   {/* معلومات الكتاب */}
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <h4 className="font-semibold text-sm line-clamp-2 hover:text-primary transition-colors">
+                  <div className="flex min-w-0 flex-1 flex-col items-center gap-2 px-2 py-3 text-center sm:px-3">
+                    <h4 className="line-clamp-2 text-base font-bold leading-snug transition-colors hover:text-primary sm:text-lg">
                       {book.title}
                     </h4>
                     <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
@@ -189,7 +116,9 @@ export function MostDownloadedBooks() {
               </div>
             ))}
           </div>
-        </div>
+        ) : (
+          <p className="px-4 py-12 text-center text-muted-foreground">لا توجد كتب متاحة للعرض حالياً</p>
+        )}
 
         {/* مؤشر التحكم */}
         <div className="flex items-center justify-between p-4 bg-muted/30 border-t">
