@@ -3,13 +3,14 @@ import { notFound } from "next/navigation"
 import { getBooksByAuthor, getAuthors } from "@/lib/books-data"
 
 interface AuthorPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
-export default function AuthorPage({ params }: AuthorPageProps) {
-  const authorName = decodeURIComponent(params.slug)
+export default async function AuthorPage({ params }: AuthorPageProps) {
+  const { slug } = await params
+  const authorName = decodeURIComponent(slug)
   const books = getBooksByAuthor(authorName)
 
   if (books.length === 0) {
@@ -24,8 +25,7 @@ export default function AuthorPage({ params }: AuthorPageProps) {
 }
 
 export async function generateStaticParams() {
-  const authors = getAuthors()
-  return authors.map((author) => ({
+  return getAuthors().map((author) => ({
     slug: encodeURIComponent(author),
   }))
 }

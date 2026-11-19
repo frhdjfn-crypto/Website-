@@ -1,15 +1,16 @@
 import { BookDetail } from "@/components/book-detail"
 import { notFound } from "next/navigation"
-import { getBookById } from "@/lib/books-data"
+import { getAllBooks, getBookById } from "@/lib/books-data"
 
 interface BookPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default function BookPage({ params }: BookPageProps) {
-  const book = getBookById(Number.parseInt(params.id))
+export default async function BookPage({ params }: BookPageProps) {
+  const { id } = await params
+  const book = getBookById(Number.parseInt(id, 10))
 
   if (!book) {
     notFound()
@@ -23,7 +24,5 @@ export default function BookPage({ params }: BookPageProps) {
 }
 
 export async function generateStaticParams() {
-  // Generate static params for all books
-  const bookIds = Array.from({ length: 28 }, (_, i) => ({ id: (i + 1).toString() }))
-  return bookIds
+  return getAllBooks().map((book) => ({ id: book.id.toString() }))
 }
