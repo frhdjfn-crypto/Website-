@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Download, Star } from "lucide-react"
 import { BookCover } from "@/components/book-cover"
@@ -40,19 +40,29 @@ function HomeBookCard({ book }: { book: Book }) {
 }
 
 export function BookList() {
-  const [books] = useState<Book[]>(() => {
-    const uniqueBooks = new Map(getAllBooks().map((book) => [book.id, book]))
-    return Array.from(uniqueBooks.values()).slice(0, 10)
-  })
+  const [books, setBooks] = useState<Book[]>([])
+
+  useEffect(() => {
+    const uniqueBooks = Array.from(new Map(getAllBooks().map((book) => [book.id, book])).values())
+    for (let index = uniqueBooks.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1))
+      ;[uniqueBooks[index], uniqueBooks[swapIndex]] = [uniqueBooks[swapIndex], uniqueBooks[index]]
+    }
+    setBooks(uniqueBooks.slice(0, 12))
+  }, [])
 
   return (
-    <div className="mb-10 w-full min-w-0">
+    <section aria-labelledby="random-books-heading" className="mb-10 w-full min-w-0">
       <div className="my-10 border-t border-border" />
+      <header className="mb-5">
+        <h2 id="random-books-heading" className="text-2xl font-bold">كتب عشوائية</h2>
+        <p className="mt-1 text-sm text-muted-foreground">اكتشف اختيارات متنوعة من مكتبتنا</p>
+      </header>
       <div className="grid grid-cols-2 gap-4 sm:gap-5">
         {books.map((book) => (
           <HomeBookCard key={book.id} book={book} />
         ))}
       </div>
-    </div>
+    </section>
   )
 }
