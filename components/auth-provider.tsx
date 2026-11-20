@@ -11,7 +11,8 @@ type User = {
 
 type AuthContextType = {
   user: User
-  login: (email: string, password: string) => Promise<void>
+  isAdmin: boolean
+  login: (email: string, password: string) => Promise<boolean>
   signup: (name: string, email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   library: string[]
@@ -31,23 +32,37 @@ function toUser(supabaseUser: SupabaseUser | null): User {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => createClient(), [])
   const [user, setUser] = useState<User>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [library, setLibrary] = useState<string[]>([])
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(toUser(data.user)))
+    let active = true
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!active) return
+      setUser(toUser(data.user))
+      if (data.user) {
+        const { data: admin } = await supabase.rpc("is_admin")
+        if (active) setIsAdmin(admin === true)
+      }
+    })
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(toUser(session?.user ?? null))
+      if (!session?.user) setIsAdmin(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => { active = false; subscription.unsubscribe() }
   }, [supabase])
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+    const { data: admin, error: adminError } = await supabase.rpc("is_admin")
+    if (adminError) throw adminError
+    setIsAdmin(admin === true)
+    return admin === true
   }
 
   const signup = async (name: string, email: string, password: string) => {
@@ -86,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        isAdmin,
         login,
         signup,
         logout,

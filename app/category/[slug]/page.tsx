@@ -1,11 +1,24 @@
 import { CategoryDetail } from "@/components/category-detail"
 import { notFound } from "next/navigation"
 import { getBooksByCategory, getCategories } from "@/lib/books-data"
+import type { Metadata } from "next"
 
 interface CategoryPageProps {
   params: Promise<{
     slug: string
   }>
+}
+
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const category = decodeURIComponent(slug)
+  const books = getBooksByCategory(category)
+  const description = `تصفح كتب تصنيف ${category} واكتشف عناوين ومؤلفين جدد.`
+  return {
+    title: `كتب ${category}`,
+    description,
+    openGraph: { title: `كتب ${category}`, description, images: books[0]?.imageUrl ? [{ url: books[0].imageUrl, alt: `غلاف كتاب من تصنيف ${category}` }] : [] },
+  }
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
