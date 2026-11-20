@@ -4,9 +4,11 @@ import { Noto_Sans_Arabic } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { AuthProvider } from "@/components/auth-provider"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { getSiteSettings } from "@/lib/site-settings"
 
 const arabicFont = Noto_Sans_Arabic({
   subsets: ["arabic"],
@@ -16,26 +18,29 @@ const arabicFont = Noto_Sans_Arabic({
 })
 
 export const metadata: Metadata = {
-  title: "📚 زيتونة بوك | Zeitouna Book",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://zeitounabook.com"),
+  title: { default: "زيتونة بوك", template: "%s | زيتونة بوك" },
   description: "منصة للكتب العربية والعالمية - اكتشف، اقرأ، وحمّل آلاف الكتب",
   generator: "v0.dev",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const settings = await getSiteSettings()
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${arabicFont.className} ${arabicFont.variable}`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="zeitouna-theme">
           <AuthProvider>
             <div className="min-h-screen bg-background flex flex-col">
-              <Header />
+              <Header siteName={settings.site_name} />
               <main className="flex-1">{children}</main>
-              <Footer />
+              <Footer settings={settings} />
               <Toaster />
+              <SonnerToaster />
             </div>
           </AuthProvider>
         </ThemeProvider>

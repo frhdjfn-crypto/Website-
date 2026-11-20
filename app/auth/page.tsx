@@ -51,9 +51,9 @@ function AuthContent() {
         setPassword("")
         setConfirmPassword("")
       } else {
-        await login(email.trim(), password)
+        const isAdmin = await login(email.trim(), password)
         const next = searchParams.get("next") ?? "/"
-        router.push(next.startsWith("/") && !next.startsWith("//") ? next : "/")
+        router.push(isAdmin ? "/admin" : next.startsWith("/") && !next.startsWith("//") ? next : "/")
         router.refresh()
       }
     } catch (error) {

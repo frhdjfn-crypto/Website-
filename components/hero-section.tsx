@@ -9,7 +9,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { getLibraryStats } from "@/lib/books-data"
 
-export function HeroSection() {
+export function HeroSection({ title, subtitle }: { title: string; subtitle: string }) {
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
   const stats = getLibraryStats()
@@ -31,15 +31,8 @@ export function HeroSection() {
         <div className="max-w-4xl mx-auto text-center space-y-8">
           {/* العنوان الرئيسي */}
           <div className="space-y-4">
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-              مرحباً بك في
-              <span className="block text-yellow-300">زيتونة بوك</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed">
-              اكتشف عالماً من المعرفة مع آلاف الكتب العربية والعالمية
-              <br />
-              اقرأ، حمّل، واستمتع بتجربة قراءة فريدة
-            </p>
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight">{title}</h1>
+            <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed">{subtitle}</p>
           </div>
 
           {/* شريط البحث */}

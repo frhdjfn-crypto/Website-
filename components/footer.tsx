@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
+import type { SiteSettings } from "@/lib/site-settings"
 
-export function Footer() {
+export function Footer({ settings }: { settings: SiteSettings }) {
   const [email, setEmail] = useState("")
   const { toast } = useToast()
 
@@ -29,22 +30,18 @@ export function Footer() {
       { href: "/", label: "الصفحة الرئيسية" },
       { href: "/categories", label: "التصنيفات" },
       { href: "/authors", label: "المؤلفون" },
-      { href: "/new-releases", label: "الإصدارات الجديدة" },
-      { href: "/bestsellers", label: "الأكثر مبيعاً" },
+      { href: "/trending", label: "الأكثر تحميلاً" },
     ],
     account: [
       { href: "/library", label: "مكتبتي الشخصية" },
       { href: "/downloads", label: "التحميلات" },
-      { href: "/favorites", label: "المفضلة" },
-      { href: "/reading-history", label: "سجل القراءة" },
       { href: "/profile", label: "الملف الشخصي" },
+      { href: "/auth", label: "تسجيل الدخول" },
     ],
     support: [
-      { href: "/help", label: "المساعدة" },
-      { href: "/contact", label: "اتصل بنا" },
-      { href: "/faq", label: "الأسئلة الشائعة" },
-      { href: "/privacy", label: "سياسة الخصوصية" },
-      { href: "/terms", label: "شروط الاستخدام" },
+      { href: `mailto:${settings.contact_email}`, label: "اتصل بنا" },
+      { href: "/categories", label: "استكشف التصنيفات" },
+      { href: "/authors", label: "المؤلفون" },
     ],
   }
 
@@ -56,20 +53,18 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Book className="h-8 w-8 text-primary" />
-              <h3 className="text-xl font-bold text-primary">زيتونة بوك</h3>
+              <h3 className="text-xl font-bold text-primary">{settings.site_name}</h3>
             </div>
-            <p className="text-muted-foreground leading-relaxed">
-              منصة رائدة للكتب العربية والعالمية. اكتشف آلاف الكتب في مختلف المجالات، واقرأ وحمّل مجاناً.
-            </p>
+            <p className="text-muted-foreground leading-relaxed">{settings.footer_text}</p>
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <a href={`mailto:${settings.contact_email}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
                 <Mail className="h-4 w-4" />
-                <span>info@zeitounabook.com</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span dir="ltr">{settings.contact_email}</span>
+              </a>
+              <a href={`tel:${settings.contact_phone}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
                 <Phone className="h-4 w-4" />
-                <span>+966 11 123 4567</span>
-              </div>
+                <span dir="ltr">{settings.contact_phone}</span>
+              </a>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>الرياض، المملكة العربية السعودية</span>

@@ -20,12 +20,12 @@ import { Badge } from "@/components/ui/badge"
 import { SearchSuggestions } from "@/components/search-suggestions"
 import { ThemeToggle } from "@/components/theme-toggle"
 
-export function Header() {
+export function Header({ siteName }: { siteName: string }) {
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
-  const { user, library, logout } = useAuth()
+  const { user, isAdmin, library, logout } = useAuth()
   const [showSuggestions, setShowSuggestions] = useState(false)
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export function Header() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <Book className="h-8 w-8 text-primary animate-pulse" />
-            <h1 className="text-2xl font-bold text-primary">زيتونة بوك</h1>
+            <h1 className="text-2xl font-bold text-primary">{siteName}</h1>
           </div>
         </div>
       </header>
@@ -75,7 +75,7 @@ export function Header() {
         {/* الشعار */}
         <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
           <Book className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold text-primary">زيتونة بوك</h1>
+          <h1 className="text-2xl font-bold text-primary">{siteName}</h1>
         </Link>
 
         {/* شريط البحث - مخفي على الشاشات الصغيرة */}
@@ -157,6 +157,10 @@ export function Header() {
                     <Download className="mr-2 h-4 w-4" />
                     التحميلات
                   </DropdownMenuItem>
+                  {isAdmin && <DropdownMenuItem onClick={() => router.push("/admin")}>
+                    <Users className="mr-2 h-4 w-4" />
+                    لوحة الإدارة
+                  </DropdownMenuItem>}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout}>تسجيل الخروج</DropdownMenuItem>
                 </>
