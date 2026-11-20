@@ -3,13 +3,14 @@ import { notFound } from "next/navigation"
 import { getBooksByCategory, getCategories } from "@/lib/books-data"
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const categoryName = decodeURIComponent(params.slug)
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const { slug } = await params
+  const categoryName = decodeURIComponent(slug)
   const books = getBooksByCategory(categoryName)
 
   if (books.length === 0) {
@@ -24,8 +25,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
 }
 
 export async function generateStaticParams() {
-  const categories = getCategories()
-  return categories.map((category) => ({
+  return getCategories().map((category) => ({
     slug: encodeURIComponent(category),
   }))
 }
