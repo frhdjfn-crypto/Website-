@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { searchBooks } from "@/lib/books-data"
 import { BookCard } from "@/components/book-card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -17,7 +16,7 @@ import type { Book } from "@/lib/types"
 type SortOption = "title" | "author" | "year" | "rating" | "pages"
 type SortDirection = "asc" | "desc"
 
-export function SearchResults() {
+export function SearchResults({ books }: { books: Book[] }) {
   const searchParams = useSearchParams()
   const query = searchParams.get("q") || ""
 
@@ -85,10 +84,8 @@ export function SearchResults() {
   const performSearch = async (searchTerm: string) => {
     setLoading(true)
     try {
-      // محاكاة تأخير البحث
-      await new Promise((resolve) => setTimeout(resolve, 300))
-
-      const searchResults = searchBooks(searchTerm)
+      const needle = searchTerm.trim().toLocaleLowerCase()
+      const searchResults = books.filter((book) => [book.title, book.author, book.category].some((value) => value.toLocaleLowerCase().includes(needle)))
       setResults(searchResults)
     } catch (error) {
       console.error("خطأ في البحث:", error)

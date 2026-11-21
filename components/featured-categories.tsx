@@ -3,7 +3,6 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getCategories, getBooksByCategory } from "@/lib/books-data"
 import { useRouter } from "next/navigation"
 import {
   BookOpen,
@@ -21,9 +20,8 @@ import {
   Star,
 } from "lucide-react"
 
-export function FeaturedCategories() {
+export function FeaturedCategories({ categories }: { categories: { name: string; count: number; averageRating: number }[] }) {
   const router = useRouter()
-  const categories = getCategories()
 
   // أيقونات مخصصة للتصنيفات
   const categoryIcons: Record<string, any> = {
@@ -59,18 +57,9 @@ export function FeaturedCategories() {
 
   // حساب التقييمات وترتيب التصنيفات حسب أعلى تقييم
   const allCategoriesWithRatings = categories.map((category) => {
-    const books = getBooksByCategory(category)
-    const Icon = categoryIcons[category] || BookOpen
-    const colorClass = categoryColors[category] || "bg-primary"
-    const averageRating = books.reduce((sum, book) => sum + book.rating, 0) / books.length
-
-    return {
-      name: category,
-      count: books.length,
-      icon: Icon,
-      colorClass,
-      averageRating: Number(averageRating.toFixed(1)),
-    }
+    const Icon = categoryIcons[category.name] || BookOpen
+    const colorClass = categoryColors[category.name] || "bg-primary"
+    return { ...category, icon: Icon, colorClass, averageRating: Number(category.averageRating.toFixed(1)) }
   })
 
   // ترتيب التصنيفات حسب التقييم (من الأعلى للأقل) وأخذ أعلى 4

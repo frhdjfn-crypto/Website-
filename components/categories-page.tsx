@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getCategories, getBooksByCategory, getLibraryStats } from "@/lib/books-data"
 import { Heart, Search, BookOpen, TrendingUp, Filter, Grid, List } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -20,7 +19,7 @@ interface CategoryInfo {
   color: string
 }
 
-export function CategoriesPage() {
+export function CategoriesPage({ categoryNames, allBooks, stats }: { categoryNames: string[]; allBooks: import("@/lib/types").Book[]; stats: { totalBooks: number; averageRating: number } }) {
   const [categories, setCategories] = useState<CategoryInfo[]>([])
   const [filteredCategories, setFilteredCategories] = useState<CategoryInfo[]>([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -70,9 +69,8 @@ export function CategoriesPage() {
     }
 
     // إنشاء بيانات التصنيفات
-    const categoryNames = getCategories()
     const categoryData = categoryNames.map((name, index) => {
-      const books = getBooksByCategory(name)
+      const books = allBooks.filter((book) => book.category === name)
       const averageRating = books.reduce((sum, book) => sum + book.rating, 0) / books.length
       return {
         name,
@@ -139,7 +137,6 @@ export function CategoriesPage() {
     router.push(`/category/${encodeURIComponent(categoryName)}`)
   }
 
-  const stats = getLibraryStats()
 
   return (
     <div className="space-y-6">

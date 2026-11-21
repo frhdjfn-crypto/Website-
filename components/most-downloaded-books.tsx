@@ -4,18 +4,14 @@ import { Download, Star, Eye } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { getAllBooks } from "@/lib/books-data"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { BookCover } from "@/components/book-cover"
 
-export function MostDownloadedBooks() {
+export function MostDownloadedBooks({ books }: { books: import("@/lib/types").Book[] }) {
   const router = useRouter()
   // ترتيب الكتب حسب عدد التحميلات
-  const mostDownloadedBooks = getAllBooks()
-    .filter((book) => book.downloadCount && book.downloadCount > 0)
-    .sort((a, b) => (b.downloadCount || 0) - (a.downloadCount || 0))
-    .slice(0, 10) // أعلى 10 كتب
+  const mostDownloadedBooks = books.filter((book) => book.downloadCount && book.downloadCount > 0).slice(0, 10) // أعلى 10 كتب
 
   const formatDownloadCount = (count: number) => {
     if (count >= 1000) {

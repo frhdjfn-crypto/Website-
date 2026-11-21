@@ -7,12 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Search, BookOpen, Download, Users, Star } from "lucide-react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { getLibraryStats } from "@/lib/books-data"
 
-export function HeroSection({ title, subtitle }: { title: string; subtitle: string }) {
+export function HeroSection({ title, subtitle, stats }: { title: string; subtitle: string; stats: { totalBooks: number; totalAuthors: number; totalDownloads: number; averageRating: number } }) {
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
-  const stats = getLibraryStats()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -75,7 +73,7 @@ export function HeroSection({ title, subtitle }: { title: string; subtitle: stri
               <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-full mx-auto mb-2">
                 <Download className="h-6 w-6" />
               </div>
-              <div className="text-2xl font-bold">50K+</div>
+              <div className="text-2xl font-bold">{stats.totalDownloads.toLocaleString()}</div>
               <div className="text-white/80 text-sm">تحميل</div>
             </div>
             <div className="text-center">

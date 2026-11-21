@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getAuthors, getBooksByAuthor, getLibraryStats } from "@/lib/books-data"
 import { Heart, Search, BookOpen, Filter, Grid, List, User, Star, Calendar } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -25,7 +24,7 @@ interface AuthorInfo {
   deathYear?: number
 }
 
-export function AuthorsPage() {
+export function AuthorsPage({ authorNames, allBooks, stats }: { authorNames: string[]; allBooks: import("@/lib/types").Book[]; stats: { totalBooks: number; averageRating: number } }) {
   const [authors, setAuthors] = useState<AuthorInfo[]>([])
   const [filteredAuthors, setFilteredAuthors] = useState<AuthorInfo[]>([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -190,9 +189,8 @@ export function AuthorsPage() {
     }
 
     // إنشاء بيانات المؤلفين
-    const authorNames = getAuthors()
     const authorData = authorNames.map((name) => {
-      const books = getBooksByAuthor(name)
+      const books = allBooks.filter((book) => book.author === name)
       const averageRating = books.reduce((sum, book) => sum + book.rating, 0) / books.length
       const categories = [...new Set(books.map((book) => book.category))]
       const years = books.map((book) => book.year)
@@ -275,7 +273,6 @@ export function AuthorsPage() {
     router.push(`/author/${encodeURIComponent(authorName)}`)
   }
 
-  const stats = getLibraryStats()
   const nationalities = [...new Set(authors.map((author) => author.nationality))].sort()
 
   return (

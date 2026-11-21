@@ -1,6 +1,8 @@
 import { CategoryDetail } from "@/components/category-detail"
 import { notFound } from "next/navigation"
-import { getBooksByCategory, getCategories } from "@/lib/books-data"
+import { getBooksByCategory } from "@/lib/books-db"
+
+export const revalidate = 60
 import type { Metadata } from "next"
 
 interface CategoryPageProps {
@@ -12,7 +14,7 @@ interface CategoryPageProps {
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params
   const category = decodeURIComponent(slug)
-  const books = getBooksByCategory(category)
+  const books = await getBooksByCategory(category)
   const description = `تصفح كتب تصنيف ${category} واكتشف عناوين ومؤلفين جدد.`
   return {
     title: `كتب ${category}`,
@@ -24,7 +26,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { slug } = await params
   const categoryName = decodeURIComponent(slug)
-  const books = getBooksByCategory(categoryName)
+  const books = await getBooksByCategory(categoryName)
 
   if (books.length === 0) {
     notFound()
@@ -35,10 +37,4 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       <CategoryDetail categoryName={categoryName} books={books} />
     </div>
   )
-}
-
-export async function generateStaticParams() {
-  return getCategories().map((category) => ({
-    slug: encodeURIComponent(category),
-  }))
 }

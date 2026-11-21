@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { getDownloadHistory, getDownloadStats, getBookById } from "@/lib/books-data"
+import { addToDownloadHistory, getDownloadHistory, getDownloadStats } from "@/lib/download-history"
+import { downloadFileWithProgress } from "@/lib/download-utils"
 import {
   Download,
   Search,
@@ -23,7 +24,7 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import type { Download as DownloadType } from "@/lib/types"
 
-export function DownloadsPage() {
+export function DownloadsPage({ books }: { books: import("@/lib/types").Book[] }) {
   const [downloads, setDownloads] = useState<DownloadType[]>([])
   const [filteredDownloads, setFilteredDownloads] = useState<DownloadType[]>([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -101,15 +102,20 @@ export function DownloadsPage() {
     })
   }
 
-  const redownload = (download: DownloadType) => {
-    const book = getBookById(download.bookId)
-    if (book?.downloadUrl) {
-      toast({
-        title: "إعادة التحميل",
-        description: `جاري إعادة تحميل "${download.bookTitle}"`,
-      })
-      // هنا يمكن إضافة منطق إعادة التحميل
+  const redownload = async (download: DownloadType) => {
+    const book = books.find((entry) => entry.id === download.bookId)
+    if (!book?.downloadUrl) {
+      toast({ title: "الملف غير متوفر حالياً", variant: "destructive" })
+      return
     }
+    await downloadFileWithProgress(`/api/download/${book.id}`, `${book.title}.pdf`, {
+      onComplete: () => {
+        addToDownloadHistory({ bookId: book.id, bookTitle: book.title, author: book.author, downloadDate: new Date().toISOString(), fileSize: book.fileSize || "غير محدد", format: book.format || "PDF", status: "completed" })
+        loadDownloads()
+        toast({ title: "تم التحميل بنجاح" })
+      },
+      onError: (error) => toast({ title: error.message === "unavailable" ? "الملف غير متوفر حالياً" : "حدث خطأ في الشبكة", variant: "destructive" }),
+    })
   }
 
   const stats = getDownloadStats()

@@ -1,14 +1,16 @@
-"use client"
-
 import { Suspense } from "react"
 import { SearchResults } from "@/components/search-results"
+import { getAllBooks } from "@/lib/books-db"
 
-export default function SearchPage() {
+export const revalidate = 60
+
+export default async function SearchPage() {
+  const books = await getAllBooks()
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <Suspense fallback={<SearchPageSkeleton />}>
-          <SearchResults />
+          <SearchResults books={books} />
         </Suspense>
       </div>
     </div>
