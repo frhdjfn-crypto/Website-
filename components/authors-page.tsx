@@ -25,8 +25,6 @@ interface AuthorInfo {
 }
 
 export function AuthorsPage({ authorNames, allBooks, stats }: { authorNames: string[]; allBooks: import("@/lib/types").Book[]; stats: { totalBooks: number; averageRating: number } }) {
-  const [authors, setAuthors] = useState<AuthorInfo[]>([])
-  const [filteredAuthors, setFilteredAuthors] = useState<AuthorInfo[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState("name")
   const [filterBy, setFilterBy] = useState("all")
@@ -181,38 +179,32 @@ export function AuthorsPage({ authorNames, allBooks, stats }: { authorNames: str
     },
   }
 
+  const initialAuthors: AuthorInfo[] = authorNames.map((name) => {
+    const books = allBooks.filter((book) => book.author === name)
+    const years = books.map((book) => book.year)
+    return {
+      name,
+      bookCount: books.length,
+      averageRating: books.length ? Math.round((books.reduce((sum, book) => sum + book.rating, 0) / books.length) * 10) / 10 : 0,
+      categories: [...new Set(books.map((book) => book.category))],
+      yearRange: { start: Math.min(...years), end: Math.max(...years) },
+      totalPages: books.reduce((sum, book) => sum + (book.pages || 0), 0),
+      isFavorite: false,
+      bio: authorDetails[name]?.bio || "معلومات غير متوفرة حالياً",
+      nationality: authorDetails[name]?.nationality || "غير محدد",
+      birthYear: authorDetails[name]?.birthYear,
+      deathYear: authorDetails[name]?.deathYear,
+    }
+  })
+
+  const [authors, setAuthors] = useState<AuthorInfo[]>(initialAuthors)
+  const [filteredAuthors, setFilteredAuthors] = useState<AuthorInfo[]>(initialAuthors)
+
   useEffect(() => {
-    // تحميل المفضلة من localStorage
     const savedFavorites = localStorage.getItem("favoriteAuthors")
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites))
     }
-
-    // إنشاء بيانات المؤلفين
-    const authorData = authorNames.map((name) => {
-      const books = allBooks.filter((book) => book.author === name)
-      const averageRating = books.reduce((sum, book) => sum + book.rating, 0) / books.length
-      const categories = [...new Set(books.map((book) => book.category))]
-      const years = books.map((book) => book.year)
-      const totalPages = books.reduce((sum, book) => sum + (book.pages || 0), 0)
-
-      return {
-        name,
-        bookCount: books.length,
-        averageRating: Math.round(averageRating * 10) / 10,
-        categories,
-        yearRange: { start: Math.min(...years), end: Math.max(...years) },
-        totalPages,
-        isFavorite: false,
-        bio: authorDetails[name]?.bio || "معلومات غير متوفرة حالياً",
-        nationality: authorDetails[name]?.nationality || "غير محدد",
-        birthYear: authorDetails[name]?.birthYear,
-        deathYear: authorDetails[name]?.deathYear,
-      }
-    })
-
-    setAuthors(authorData)
-    setFilteredAuthors(authorData)
   }, [])
 
   useEffect(() => {

@@ -20,15 +20,6 @@ interface CategoryInfo {
 }
 
 export function CategoriesPage({ categoryNames, allBooks, stats }: { categoryNames: string[]; allBooks: import("@/lib/types").Book[]; stats: { totalBooks: number; averageRating: number } }) {
-  const [categories, setCategories] = useState<CategoryInfo[]>([])
-  const [filteredCategories, setFilteredCategories] = useState<CategoryInfo[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [sortBy, setSortBy] = useState("name")
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [favorites, setFavorites] = useState<string[]>([])
-  const router = useRouter()
-  const { toast } = useToast()
-
   // ألوان مختلفة للتصنيفات
   const categoryColors = [
     "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
@@ -61,29 +52,33 @@ export function CategoriesPage({ categoryNames, allBooks, stats }: { categoryNam
     تكنولوجيا: "آخر التطورات التقنية وتأثيرها على مستقبل البشرية",
   }
 
+  const initialCategories = categoryNames.map((name, index) => {
+    const books = allBooks.filter((book) => book.category === name)
+    const averageRating = books.reduce((sum, book) => sum + book.rating, 0) / books.length
+    return {
+      name,
+      count: books.length,
+      averageRating: Math.round(averageRating * 10) / 10,
+      isFavorite: false,
+      description: categoryDescriptions[name] || "تصنيف متنوع من الكتب المفيدة",
+      color: categoryColors[index % categoryColors.length],
+    }
+  })
+
+  const [categories, setCategories] = useState<CategoryInfo[]>(initialCategories)
+  const [filteredCategories, setFilteredCategories] = useState<CategoryInfo[]>(initialCategories)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortBy, setSortBy] = useState("name")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [favorites, setFavorites] = useState<string[]>([])
+  const router = useRouter()
+  const { toast } = useToast()
+
   useEffect(() => {
-    // تحميل المفضلة من localStorage
     const savedFavorites = localStorage.getItem("favoriteCategories")
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites))
     }
-
-    // إنشاء بيانات التصنيفات
-    const categoryData = categoryNames.map((name, index) => {
-      const books = allBooks.filter((book) => book.category === name)
-      const averageRating = books.reduce((sum, book) => sum + book.rating, 0) / books.length
-      return {
-        name,
-        count: books.length,
-        averageRating: Math.round(averageRating * 10) / 10,
-        isFavorite: false,
-        description: categoryDescriptions[name] || "تصنيف متنوع من الكتب المفيدة",
-        color: categoryColors[index % categoryColors.length],
-      }
-    })
-
-    setCategories(categoryData)
-    setFilteredCategories(categoryData)
   }, [])
 
   useEffect(() => {
