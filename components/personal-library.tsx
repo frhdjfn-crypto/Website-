@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { useAuth } from "@/components/auth-provider"
-import { getAllBooks } from "@/lib/books-data"
 import {
   BookOpen,
   Search,
@@ -40,7 +39,7 @@ interface ReadingStatus {
   notes?: string
 }
 
-export function PersonalLibrary() {
+export function PersonalLibrary({ allBooks }: { allBooks: Book[] }) {
   const { user, library, addToLibrary } = useAuth()
   const [libraryBooks, setLibraryBooks] = useState<Book[]>([])
   const [readingStatuses, setReadingStatuses] = useState<ReadingStatus[]>([])
@@ -55,7 +54,6 @@ export function PersonalLibrary() {
 
   useEffect(() => {
     // تحميل كتب المكتبة
-    const allBooks = getAllBooks()
     const userBooks = allBooks.filter((book) => library.includes(book.title))
     setLibraryBooks(userBooks)
 

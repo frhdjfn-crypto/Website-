@@ -3,15 +3,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Star, StarHalf, TrendingUp } from "lucide-react"
 
-const topRatedBooks = [
-  { title: "الخيميائي", author: "باولو كويلو", rating: 4.5 },
-  { title: "العادات السبع", author: "ستيفن كوفي", rating: 4.0 },
-  { title: "الإنسان العاقل", author: "يوفال نوح هراري", rating: 4.8 },
-  { title: "قوة العادات", author: "تشارلز دويج", rating: 4.0 },
-  { title: "الرحيق المختوم", author: "صفي الرحمن المباركفوري", rating: 4.9 },
-]
-
-export function MostRatedBooks() {
+export function MostRatedBooks({ books }: { books: { id: number; title: string; rating: number }[] }) {
   const renderRating = (rating: number) => {
     const fullStars = Math.floor(rating)
     const hasHalfStar = rating % 1 !== 0
@@ -39,8 +31,8 @@ export function MostRatedBooks() {
       </CardHeader>
       <CardContent>
         <ul className="divide-y dark:divide-gray-700">
-          {topRatedBooks.map((book, index) => (
-            <li key={index} className="flex items-center justify-between py-3">
+          {books.map((book) => (
+            <li key={book.id} className="flex items-center justify-between py-3">
               <span>{book.title}</span>
               {renderRating(book.rating)}
             </li>

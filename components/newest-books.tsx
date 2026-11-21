@@ -5,14 +5,13 @@ import { BookOpen, Star, Eye, AlertCircle, RefreshCw } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { getAllBooks } from "@/lib/books-data"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import Link from "next/link"
 import { BookCover } from "@/components/book-cover"
 import type { Book } from "@/lib/types"
 
-export function NewestBooks() {
+export function NewestBooks({ initialBooks }: { initialBooks: Book[] }) {
   const router = useRouter()
   const { toast } = useToast()
   const [books, setBooks] = useState<Book[]>([])
@@ -26,8 +25,7 @@ export function NewestBooks() {
     try {
       setLoading(true)
 
-      const newestBooks = getAllBooks()
-        .slice()
+      const newestBooks = [...initialBooks]
         .sort((a, b) => new Date(b.addedDate || 0).getTime() - new Date(a.addedDate || 0).getTime())
         .slice(0, 10)
       setBooks(newestBooks)

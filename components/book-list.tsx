@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Download, Star } from "lucide-react"
 import { BookCover } from "@/components/book-cover"
-import { getAllBooks } from "@/lib/books-data"
 import { imageManager } from "@/lib/image-manager"
 import type { Book } from "@/lib/types"
 
@@ -39,11 +38,11 @@ function HomeBookCard({ book }: { book: Book }) {
   )
 }
 
-export function BookList() {
+export function BookList({ initialBooks }: { initialBooks: Book[] }) {
   const [books, setBooks] = useState<Book[]>([])
 
   useEffect(() => {
-    const uniqueBooks = Array.from(new Map(getAllBooks().map((book) => [book.id, book])).values())
+    const uniqueBooks = Array.from(new Map(initialBooks.map((book) => [book.id, book])).values())
     for (let index = uniqueBooks.length - 1; index > 0; index -= 1) {
       const swapIndex = Math.floor(Math.random() * (index + 1))
       ;[uniqueBooks[index], uniqueBooks[swapIndex]] = [uniqueBooks[swapIndex], uniqueBooks[index]]

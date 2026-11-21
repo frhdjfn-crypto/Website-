@@ -1,9 +1,13 @@
 import { PersonalLibrary } from "@/components/personal-library"
+import { getAllBooks } from "@/lib/books-db"
 
-export default function Library() {
+export const revalidate = 60
+
+export default async function Library() {
+  const books = await getAllBooks()
   return (
     <div className="container mx-auto px-4 py-8">
-      <PersonalLibrary />
+      <PersonalLibrary allBooks={books} />
     </div>
   )
 }

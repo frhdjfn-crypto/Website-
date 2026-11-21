@@ -1,11 +1,9 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { getLibraryStats } from "@/lib/books-data"
 import { BookOpen, Users, FolderOpen, Star, FileText } from "lucide-react"
 
-export function LibraryStats() {
-  const stats = getLibraryStats()
+export function LibraryStats({ stats }: { stats: { totalBooks: number; totalCategories: number; totalAuthors: number; averageRating: number; totalPages: number } }) {
 
   return (
     <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">

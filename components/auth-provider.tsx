@@ -37,22 +37,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true
-    supabase.auth.getUser().then(async ({ data }) => {
+    const loadLibrary = async (userId: string) => {
+      const { data } = await supabase.from("user_library").select("book_id, books(title)").eq("user_id", userId)
+      if (!active || !data) return
+      setLibrary(data.flatMap((row) => {
+        const book = Array.isArray(row.books) ? row.books[0] : row.books
+        return book?.title ? [book.title] : []
+      }))
+    }
+    const loadUser = async () => {
+      const { data } = await supabase.auth.getUser()
       if (!active) return
       setUser(toUser(data.user))
       if (data.user) {
-        const { data: admin } = await supabase.rpc("is_admin")
+        const [{ data: admin },] = await Promise.all([supabase.rpc("is_admin"), loadLibrary(data.user.id)])
         if (active) setIsAdmin(admin === true)
       }
+    }
+    void loadUser()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const nextUser = session?.user ?? null
+      setUser(toUser(nextUser))
+      if (!nextUser) { setIsAdmin(false); setLibrary([]) }
+      else { void loadLibrary(nextUser.id); void supabase.rpc("is_admin").then(({ data }) => { if (active) setIsAdmin(data === true) }) }
     })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(toUser(session?.user ?? null))
-      if (!session?.user) setIsAdmin(false)
-    })
-
     return () => { active = false; subscription.unsubscribe() }
   }, [supabase])
 
@@ -83,14 +91,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLibrary([])
   }
 
-  const addToLibrary = (bookTitle: string) => {
-    if (!library.includes(bookTitle)) {
-      setLibrary([...library, bookTitle])
+  const addToLibrary = async (bookTitle: string) => {
+    if (library.includes(bookTitle)) return
+    setLibrary((current) => [...current, bookTitle])
+    if (user) {
+      const { data: book } = await supabase.from("books").select("id").eq("title", bookTitle).maybeSingle()
+      if (!book) { setLibrary((current) => current.filter((title) => title !== bookTitle)); return }
+      const { error } = await supabase.from("user_library").insert({ user_id: (await supabase.auth.getUser()).data.user?.id, book_id: book.id })
+      if (error && error.code !== "23505") setLibrary((current) => current.filter((title) => title !== bookTitle))
     }
   }
 
-  const removeFromLibrary = (bookTitle: string) => {
-    setLibrary(library.filter((title) => title !== bookTitle))
+  const removeFromLibrary = async (bookTitle: string) => {
+    setLibrary((current) => current.filter((title) => title !== bookTitle))
+    if (user) {
+      const { data: book } = await supabase.from("books").select("id").eq("title", bookTitle).maybeSingle()
+      const { data: auth } = await supabase.auth.getUser()
+      if (book && auth.user) await supabase.from("user_library").delete().eq("user_id", auth.user.id).eq("book_id", book.id)
+    }
   }
 
   const viewLibrary = () => {

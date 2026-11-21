@@ -5,7 +5,7 @@ import { CheckCircle, AlertCircle, Clock, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { checkFileExists } from "@/lib/books-data"
+import { checkFileExists } from "@/lib/download-utils"
 
 interface FileStatusIndicatorProps {
   filePath: string

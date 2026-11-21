@@ -1,18 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { searchBooks, getCategories } from "@/lib/books-data"
+import type { Book } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, User, Tag } from "lucide-react"
 
 interface SearchSuggestionsProps {
   query: string
+  books: Book[]
+  categories: string[]
   onSuggestionClick: (suggestion: string) => void
   className?: string
 }
 
-export function SearchSuggestions({ query, onSuggestionClick, className }: SearchSuggestionsProps) {
+export function SearchSuggestions({ query, books, categories, onSuggestionClick, className }: SearchSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<{
     books: string[]
     authors: string[]
@@ -32,7 +34,7 @@ export function SearchSuggestions({ query, onSuggestionClick, className }: Searc
     const lowercaseQuery = query.toLowerCase()
 
     // اقتراحات الكتب
-    const bookResults = searchBooks(query)
+    const bookResults = books.filter((book) => [book.title, book.author, book.category].some((value) => value.toLocaleLowerCase().includes(lowercaseQuery)))
     const bookSuggestions = bookResults.slice(0, 3).map((book) => book.title)
 
     // اقتراحات المؤلفين - استخراج المؤلفين من نتائج البحث
@@ -43,7 +45,6 @@ export function SearchSuggestions({ query, onSuggestionClick, className }: Searc
     ].slice(0, 3)
 
     // اقتراحات التصنيفات
-    const categories = getCategories()
     const categorySuggestions = categories
       .filter((category) => category.toLowerCase().includes(lowercaseQuery))
       .slice(0, 3)
@@ -53,7 +54,7 @@ export function SearchSuggestions({ query, onSuggestionClick, className }: Searc
       authors: authorSuggestions,
       categories: categorySuggestions,
     })
-  }, [query])
+  }, [query, books, categories])
 
   const hasAnySuggestions =
     suggestions.books.length > 0 || suggestions.authors.length > 0 || suggestions.categories.length > 0

@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { SearchSuggestions } from "@/components/search-suggestions"
 import { ThemeToggle } from "@/components/theme-toggle"
 
-export function Header({ siteName }: { siteName: string }) {
+export function Header({ siteName, books, categories }: { siteName: string; books: import("@/lib/types").Book[]; categories: string[] }) {
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -94,6 +94,8 @@ export function Header({ siteName }: { siteName: string }) {
             {showSuggestions && searchQuery.length > 1 && (
               <SearchSuggestions
                 query={searchQuery}
+                books={books}
+                categories={categories}
                 onSuggestionClick={(suggestion) => {
                   setSearchQuery(suggestion)
                   setShowSuggestions(false)
