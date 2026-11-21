@@ -13,7 +13,8 @@ type AuthContextType = {
   user: User
   isAdmin: boolean
   login: (email: string, password: string) => Promise<boolean>
-  signup: (name: string, email: string, password: string) => Promise<void>
+  signup: (name: string, email: string, password: string) => Promise<{ emailConfirmationRequired: boolean }>
+  resendConfirmation: (email: string) => Promise<void>
   logout: () => Promise<void>
   library: string[]
   addToLibrary: (bookTitle: string) => void
@@ -65,16 +66,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
-    const { data: admin, error: adminError } = await supabase.rpc("is_admin")
-    if (adminError) throw adminError
+    setUser(toUser(data.user))
+    const { data: admin } = await supabase.rpc("is_admin")
     setIsAdmin(admin === true)
     return admin === true
   }
 
   const signup = async (name: string, email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -83,6 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`,
       },
     })
+    if (error) throw error
+    return { emailConfirmationRequired: !data.session }
+  }
+
+  const resendConfirmation = async (email: string) => {
+    const { error } = await supabase.auth.resend({ type: "signup", email })
     if (error) throw error
   }
 
@@ -122,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin,
         login,
         signup,
+        resendConfirmation,
         logout,
         library,
         addToLibrary,

@@ -2,7 +2,7 @@
 
 import { Suspense, useState, type FormEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2, LockKeyhole, Mail, UserRound } from "lucide-react"
+import { CheckCircle2, Loader2, LockKeyhole, Mail, UserRound } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,17 +12,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
 
 function getArabicAuthError(error: unknown) {
+  const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : ""
   const message = error instanceof Error ? error.message : ""
-  if (message.includes("Invalid login credentials")) return "البريد أو كلمة المرور غير صحيحة"
-  if (message.includes("Email not confirmed")) return "يرجى تأكيد بريدك الإلكتروني أولاً"
-  if (message.includes("User already registered")) return "هذا البريد مسجّل مسبقاً"
-  return "حدث خطأ، حاول مرة أخرى"
+  if (code === "invalid_credentials" || message.includes("Invalid login credentials")) return "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+  if (code === "email_not_confirmed" || message.includes("Email not confirmed")) return "أكد بريدك الإلكتروني من رسالة التأكيد قبل تسجيل الدخول"
+  if (code === "weak_password" || message.toLowerCase().includes("password should be")) return "كلمة المرور ضعيفة. اختر كلمة مرور أقوى من 6 أحرف"
+  if (code === "email_address_invalid") return "أدخل عنوان بريد إلكتروني صالحاً"
+  if (code === "over_email_send_rate_limit" || code === "over_request_rate_limit") return "طلبات كثيرة خلال وقت قصير. انتظر قليلاً ثم حاول مرة أخرى"
+  if (code === "user_already_exists" || code === "user_already_registered") return "تعذر إنشاء الحساب بهذا البريد. جرّب تسجيل الدخول أو استخدم استعادة كلمة المرور"
+  return "تعذر إكمال الطلب الآن. تحقق من اتصالك وحاول مرة أخرى"
 }
 
 function AuthContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { login, signup } = useAuth()
+  const { login, signup, resendConfirmation } = useAuth()
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState(searchParams.get("mode") === "signup" ? "signup" : "login")
   const [name, setName] = useState("")
@@ -30,11 +34,28 @@ function AuthContent() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
+  const [errorMessage, setErrorMessage] = useState(searchParams.get("error") === "confirmation" ? "تعذر تأكيد البريد من هذا الرابط. اطلب رسالة جديدة وحاول مرة أخرى" : "")
+  const [callbackMessage] = useState(searchParams.get("confirmed") === "1" ? "تم تأكيد بريدك الإلكتروني. يمكنك الآن تسجيل الدخول" : "")
+  const [confirmationRequired, setConfirmationRequired] = useState(false)
+  const [resending, setResending] = useState(false)
+
+  async function handleResendConfirmation() {
+    setResending(true)
+    setErrorMessage("")
+    try {
+      await resendConfirmation(email.trim())
+      toast({ title: "أُعيد إرسال رسالة التأكيد", description: "تحقق من بريدك الوارد ومجلد الرسائل غير المرغوب فيها" })
+    } catch (error) {
+      setErrorMessage(getArabicAuthError(error))
+    } finally {
+      setResending(false)
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (event.nativeEvent instanceof Event && "isComposing" in event.nativeEvent && event.nativeEvent.isComposing) return
+    const nativeEvent = event.nativeEvent as SubmitEvent & { isComposing?: boolean; keyCode?: number }
+    if (nativeEvent.isComposing || nativeEvent.keyCode === 229) return
     setErrorMessage("")
 
     if (activeTab === "signup" && password !== confirmPassword) {
@@ -45,11 +66,17 @@ function AuthContent() {
     setLoading(true)
     try {
       if (activeTab === "signup") {
-        await signup(name.trim(), email.trim(), password)
-        toast({ title: "تم إنشاء الحساب، افتح رسالة التأكيد في بريدك ثم سجّل الدخول" })
-        setActiveTab("login")
+        const result = await signup(name.trim(), email.trim(), password)
         setPassword("")
         setConfirmPassword("")
+        if (result.emailConfirmationRequired) {
+          setConfirmationRequired(true)
+        } else {
+          toast({ title: "تم إنشاء الحساب وتسجيل الدخول بنجاح" })
+          const next = searchParams.get("next") ?? "/"
+          router.replace(next.startsWith("/") && !next.startsWith("//") ? next : "/")
+          router.refresh()
+        }
       } else {
         const isAdmin = await login(email.trim(), password)
         const next = searchParams.get("next") ?? "/"
@@ -73,6 +100,24 @@ function AuthContent() {
         <CardDescription>سجّل الدخول لمتابعة مكتبتك واكتشاف المزيد من الكتب</CardDescription>
       </CardHeader>
       <CardContent>
+        {confirmationRequired ? (
+          <div className="flex flex-col items-center gap-4 text-center" role="status" aria-live="polite">
+            <CheckCircle2 className="size-12 text-primary" aria-hidden="true" />
+            <h2 className="text-lg font-semibold">بقيت خطوة واحدة لإكمال حسابك</h2>
+            <p className="text-sm leading-6 text-muted-foreground">
+              أرسلنا رابط تأكيد إلى <span dir="ltr" className="font-medium text-foreground">{email}</span>. افتح الرابط في الرسالة لتفعيل حسابك، ثم سجّل الدخول.
+            </p>
+            {errorMessage && <p role="alert" className="text-sm text-destructive">{errorMessage}</p>}
+            <Button type="button" variant="outline" disabled={resending} onClick={handleResendConfirmation} className="w-full">
+              {resending ? <><Loader2 className="size-4 animate-spin" aria-hidden="true" /> جارٍ إعادة الإرسال</> : "إعادة إرسال رسالة التأكيد"}
+            </Button>
+            <Button type="button" variant="link" onClick={() => { setConfirmationRequired(false); setActiveTab("login"); setErrorMessage("") }}>
+              العودة لتسجيل الدخول
+            </Button>
+          </div>
+        ) : (
+        <>
+        {callbackMessage && <p role="status" className="mb-4 rounded-lg bg-primary/10 p-3 text-sm text-primary">{callbackMessage}</p>}
         <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setErrorMessage("") }}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
@@ -105,6 +150,8 @@ function AuthContent() {
             </form>
           </TabsContent>
         </Tabs>
+        </>
+        )}
       </CardContent>
     </Card>
   )
