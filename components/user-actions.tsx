@@ -49,24 +49,19 @@ export function UserActions() {
     }
 
     try {
-      const result = await signup(name.trim(), email.trim(), password)
+      await signup(name.trim(), email.trim(), password)
       setIsSignupOpen(false)
-      if (result.emailConfirmationRequired) {
-        toast({
-          title: "بقيت خطوة لإكمال الحساب",
-          description: "افتح رابط التأكيد المرسل إلى بريدك الإلكتروني قبل تسجيل الدخول",
-        })
-      } else {
-        setIsLoginOpen(true)
-        toast({
-          title: "تم إنشاء الحساب وتسجيل الدخول بنجاح",
-          description: "مرحباً بك في زيتونة بوك",
-        })
-      }
+      toast({
+        title: "تم إنشاء حسابك بنجاح",
+        description: "مرحباً بك في زيتونة بوك",
+      })
     } catch (error) {
+      const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : ""
       toast({
         title: "خطأ في التسجيل",
-        description: "حدث خطأ أثناء إنشاء الحساب",
+        description: code === "user_already_registered" || code === "user_already_exists" || code === "email_exists"
+          ? "هذا البريد مسجّل مسبقاً"
+          : "حدث خطأ أثناء إنشاء الحساب",
         variant: "destructive",
       })
     }
