@@ -49,13 +49,20 @@ export function UserActions() {
     }
 
     try {
-      await signup(name, email, password)
+      const result = await signup(name.trim(), email.trim(), password)
       setIsSignupOpen(false)
-      setIsLoginOpen(true)
-      toast({
-        title: "تم إنشاء الحساب بنجاح",
-        description: "يمكنك الآن تسجيل الدخول",
-      })
+      if (result.emailConfirmationRequired) {
+        toast({
+          title: "بقيت خطوة لإكمال الحساب",
+          description: "افتح رابط التأكيد المرسل إلى بريدك الإلكتروني قبل تسجيل الدخول",
+        })
+      } else {
+        setIsLoginOpen(true)
+        toast({
+          title: "تم إنشاء الحساب وتسجيل الدخول بنجاح",
+          description: "مرحباً بك في زيتونة بوك",
+        })
+      }
     } catch (error) {
       toast({
         title: "خطأ في التسجيل",

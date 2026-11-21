@@ -11,9 +11,10 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${safeNext}`)
+      const destination = safeNext === "/" ? "/auth?confirmed=1" : safeNext
+      return NextResponse.redirect(`${origin}${destination}`)
     }
   }
 
-  return NextResponse.redirect(`${origin}/?auth_error=1`)
+  return NextResponse.redirect(`${origin}/auth?error=confirmation`)
 }
