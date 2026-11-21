@@ -10,6 +10,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { getSiteSettings } from "@/lib/site-settings"
 import { getAllBooks, getCategories } from "@/lib/books-db"
+import { Analytics } from "@vercel/analytics/next"
 
 export const revalidate = 60
 
@@ -44,6 +45,7 @@ export default async function RootLayout({
               <Footer settings={settings} />
               <Toaster />
               <SonnerToaster />
+              <Analytics />
             </div>
           </AuthProvider>
         </ThemeProvider>
